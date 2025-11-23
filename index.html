@@ -1188,41 +1188,40 @@
             });
         }
 
-        async function generateQuizOptions(word) {
-            const prompt = `为英语单词"${word.word}"生成4个选项（包含正确答案），用于英语测试题。
+async function generateQuizOptions(word) {
+    const prompt = `为英语单词"${word.word}"生成4个选项（包含正确答案），用于英语测试题。
 要求：
-- 选项为英文释义
-- 1个正确答案（该单词的准确意思）
+- 选项为中文释义
+- 1个正确答案（该单词的准确中文意思：${word.meaning}）
 - 3个干扰项需与正确答案在含义、词性或用法上相似，具有迷惑性
-- 所有选项都必须是英文
+- 所有选项都必须是中文
 - 返回JSON格式：{"correct":"正确释义","options":["选项1","选项2","选项3","选项4"]}
 - 选项顺序随机
 
-单词：${word.word} (中文：${word.meaning})`;
+单词：${word.word} (正确的中文释义是：${word.meaning})`;
 
-            try {
-                const response = await callKimi([{ role: 'user', content: prompt }], 0.3);
-                const data = JSON.parse(response.replace(/```json|```/g, '').trim());
-                
-                // 打乱选项顺序
-                const options = [...data.options];
-                for (let i = options.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [options[i], options[j]] = [options[j], options[i]];
-                }
-                
-                return options;
-            } catch (error) {
-                // 备用方案
-                return [
-                    word.meaning,
-                    'A similar but wrong meaning',
-                    'Another confusing option',
-                    'Yet another distractor'
-                ];
-            }
+    try {
+        const response = await callKimi([{ role: 'user', content: prompt }], 0.3);
+        const data = JSON.parse(response.replace(/```json|```/g, '').trim());
+        
+        // 打乱选项顺序
+        const options = [...data.options];
+        for (let i = options.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [options[i], options[j]] = [options[j], options[i]];
         }
-
+        
+        return options;
+    } catch (error) {
+        // 备用方案：使用中文
+        return [
+            word.meaning,
+            '一个相似但错误的释义',
+            '另一个混淆选项',
+            '再一个干扰项'
+        ];
+    }
+}
         function selectOption(element, isCorrect, optionIndex) {
             const options = document.querySelectorAll('.quiz-option');
             options.forEach(opt => opt.onclick = null); // 禁用点击
